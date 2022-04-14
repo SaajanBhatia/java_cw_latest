@@ -63,6 +63,18 @@ public class ProcessFile {
 		return allProducts;
 	}
 	
+	public Product getProdObj(int barcode) {
+		ArrayList<Product> allProducts = getAllStockData();
+		for (int i = 0; i < allProducts.size(); i++ ) {
+			if (allProducts.get(i).barcode == barcode) {
+				return allProducts.get(i);
+			}
+		}
+		Product emptyRes = null;
+		return emptyRes;
+	}
+	
+	
 	public int getQuantity(int barcode) {
 		// Get All Stock Data
 		ArrayList<Product> data = getAllStockData();
@@ -117,8 +129,6 @@ public class ProcessFile {
 	      System.out.println("An error occurred.");
 	      e.printStackTrace();
 	    }
-
-	    System.out.println("done");
 	    
 	    return true;
 	}

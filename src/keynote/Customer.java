@@ -58,14 +58,20 @@ public class Customer extends User {
 		int desiredQuantity = this.shoppingBasket.get(prodBarcode);
 		int currentQuantity = comp.getQuantity(prodBarcode);
 		
-		// Delete Product from basket
-		this.shoppingBasket.remove(prodBarcode);
+		// Delete Product from basket if it exists in the basket
+		if ( this.shoppingBasket.containsKey(prodBarcode) == false) {
+			results.add("Product is not in basket");
+			results.add("error");
+		} else {
+			this.shoppingBasket.remove(prodBarcode);
+			results.add("Product Removed Successfully");
+			results.add("success");
+		}
 		
 		// Update Quantity in Stock
 		comp.updateQuantity(prodBarcode, currentQuantity + desiredQuantity);
 		
-		results.add("Product Removed Successfully");
-		results.add("success");
+		
 
 		
 		// Increment Stock Quantity
@@ -92,13 +98,7 @@ public class Customer extends User {
 	public void clearBasket() {
 		// Update Original Quantity in Stock File
 		for (Map.Entry<Integer, Integer> set : this.shoppingBasket.entrySet()) {
-			int currentQuantity = comp.getQuantity(set.getKey());
-			int desiredQuantity = set.getValue();
-			
-			// Update Quantity in Stock
-			comp.updateQuantity(set.getKey(), currentQuantity + desiredQuantity);
-			
-			this.shoppingBasket.remove(set.getKey());
+			removeItemFromBasket(set.getKey());
 		}
 	}
 	
@@ -106,6 +106,32 @@ public class Customer extends User {
 		Misc temp = new Misc();
 		ArrayList<Product> tempRes = temp.searchProducts(comp.getAllStockData(), searchQ);
 		return tempRes;
+	}
+	
+	public ArrayList<String>retrieveProductDetails(int barcode) {
+		ArrayList<String> prodDetails = new ArrayList<String>(); // Create an ArrayList object
+		
+		Product res = comp.getProdObj(barcode);
+		if (res != null) {
+			prodDetails.add(res.brand);
+			prodDetails.add(res.colour);
+			prodDetails.add(res.connec);
+		}
+		// If keyboard product
+		if (res instanceof Keyboard) {
+			Keyboard resKb = (Keyboard) res;
+			prodDetails.add("Keyboard");
+			prodDetails.add(resKb.layout);
+		}
+		
+		// If mouse product
+		if (res instanceof Mice) {
+			Mice resM = (Mice) res;
+			prodDetails.add("Mouse"); 
+			prodDetails.add(String.valueOf(resM.noButtons));
+		}
+		
+		return prodDetails;
 	}
 	
 }

@@ -8,6 +8,7 @@ import javax.swing.JPanel;
 import javax.swing.JLabel;
 import javax.swing.SwingConstants;
 import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeModel;
 
 import java.awt.Font;
 import javax.swing.JDesktopPane;
@@ -19,6 +20,10 @@ import java.awt.event.ActionEvent;
 import javax.swing.JTree;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Random;
+
 import javax.swing.JScrollBar;
 import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel; // import the ArrayList class
@@ -34,6 +39,7 @@ public class _customerDash {
 	public Customer sysCustomer = null;
 	
 	public String[] protocol = {"CUSTOMER"};
+	
 
 	/**
 	 * Launch the application.
@@ -51,12 +57,8 @@ public class _customerDash {
 		});
 	}
 	
-	public boolean tryParseInt(String value) {
-	    try {
-	        return true;
-	    } catch (NumberFormatException e) {
-	        return false;
-	    }
+	public boolean isInt(String value) {
+		return value.matches("-?\\d+");
 	}
 
 	/**
@@ -64,7 +66,7 @@ public class _customerDash {
 	 * @param userID 
 	 */
 	public _customerDash(String userID) {
-		this.sysCustomer = comp.getCustomerObj(userID);
+		this.sysCustomer = comp.getCustomerObj("101");
 		initialize();
 	}
 
@@ -98,29 +100,25 @@ public class _customerDash {
 		desktopPane.add(lblNewLabel_1);
 		
 		JButton search_customer_sbt_btn = new JButton("Go");
-		search_customer_sbt_btn.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				String searchQ = search_customer_query.getText();
-				ArrayList<Product> searchResults = sysCustomer.searchProducts(searchQ);
-				_searchResults searchInstance = new _searchResults();
-				searchInstance.initialize(searchResults);
-			}
-		});
 		search_customer_sbt_btn.setForeground(Color.WHITE);
 		search_customer_sbt_btn.setBackground(new Color(67, 127, 151));
 		search_customer_sbt_btn.setBounds(610, 67, 61, 33);
 		desktopPane.add(search_customer_sbt_btn);
 		
-		DefaultMutableTreeNode root = new DefaultMutableTreeNode("Root");
-		//ArrayList<DefaultMutableTreeNode> shoppingItems = new ArrayList<DefaultMutableTreeNode>();
-		for (int i = 0;i < 5; i++) {
-			DefaultMutableTreeNode tempNode = new DefaultMutableTreeNode("Vegetables");
-			DefaultMutableTreeNode tempNode2 = new DefaultMutableTreeNode("Carrot");
-			tempNode.add(tempNode2);
-			root.add(tempNode);
-		}
+		DefaultMutableTreeNode root = new DefaultMutableTreeNode("Shopping Basket");
 		
-		JTree shopping_tree = new JTree(root);
+//		for (int i = 0;i < 5; i++) {
+//			DefaultMutableTreeNode tempNode = new DefaultMutableTreeNode("Vegetables");
+//			DefaultMutableTreeNode tempNode2 = new DefaultMutableTreeNode("Carrot");
+//			tempNode.add(tempNode2);
+//			root.add(tempNode);
+//		}
+		
+		DefaultTreeModel shopping_basket = new DefaultTreeModel(root);
+		JTree shopping_tree = new JTree(shopping_basket);
+		shopping_tree.setLargeModel(true);
+		shopping_tree.setShowsRootHandles(true);
+		shopping_tree.setEditable(true);
 		shopping_tree.setBackground(Color.GRAY);
 		shopping_tree.setBounds(797, 84, 363, 444);
 		desktopPane.add(shopping_tree);
@@ -131,7 +129,7 @@ public class _customerDash {
 		basket_lbl.setBounds(797, 37, 363, 36);
 		desktopPane.add(basket_lbl);
 		
-		JButton logout_btn = new JButton("Logout");
+		JButton logout_btn = new JButton("Exit");
 		logout_btn.setForeground(Color.WHITE);
 		logout_btn.setBackground(new Color(67, 127, 151));
 		logout_btn.setBounds(24, 581, 166, 33);
@@ -199,39 +197,189 @@ public class _customerDash {
 		del_prod_btn.setBounds(381, 345, 166, 33);
 		desktopPane.add(del_prod_btn);
 		
+		
 		JLabel lblNewLabel_1_2_2 = new JLabel("Delete Product");
 		lblNewLabel_1_2_2.setForeground(Color.WHITE);
 		lblNewLabel_1_2_2.setFont(new Font("Trebuchet MS", Font.BOLD, 16));
 		lblNewLabel_1_2_2.setBounds(43, 295, 118, 36);
 		desktopPane.add(lblNewLabel_1_2_2);
-
-		JLabel error_lbl_customer = new JLabel("");
-		error_lbl_customer.setFont(new Font("Trebuchet MS", Font.BOLD | Font.ITALIC, 13));
-		error_lbl_customer.setForeground(new Color(255, 0, 0));
-		error_lbl_customer.setBounds(45, 460, 393, 44);
-		desktopPane.add(error_lbl_customer);
-		
-		add_prod_btn.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				String prodBarcode = add_barcode_inp.getText();
-				if (tryParseInt(prodBarcode) == false) {
-					error_lbl_customer.setText("Please Type Integer Barcode");
-				} else {
-					int quantity = (Integer) spinner.getValue();
-					sysCustomer.addItemToBasket(Integer.parseInt(prodBarcode), quantity);
-				}
-				
-				
-				
-			}
-		});
-		
-		
 		
 		JButton clear_basket = new JButton("Clear Basket");
 		clear_basket.setForeground(Color.WHITE);
 		clear_basket.setBackground(new Color(67, 127, 151));
 		clear_basket.setBounds(608, 380, 166, 33);
 		desktopPane.add(clear_basket);
+		
+		JLabel error_lbl_customer = new JLabel("");
+		error_lbl_customer.setFont(new Font("Trebuchet MS", Font.BOLD | Font.ITALIC, 13));
+		error_lbl_customer.setForeground(new Color(255, 0, 0));
+		error_lbl_customer.setBounds(45, 460, 393, 44);
+		desktopPane.add(error_lbl_customer);
+		
+		JLabel success_lbl_customer = new JLabel("");
+		success_lbl_customer.setForeground(Color.GREEN);
+		success_lbl_customer.setFont(new Font("Trebuchet MS", Font.BOLD | Font.ITALIC, 13));
+		success_lbl_customer.setBounds(45, 407, 393, 44);
+		desktopPane.add(success_lbl_customer);
+		
+		
+		// User Logs Out
+		logout_btn.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent log_e) {
+				System.out.println("User Signed Out");
+				System.exit(0);
+			}
+		});
+		
+		// Search Function
+		search_customer_sbt_btn.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				// Clear any messages on screen
+				clearMessages(success_lbl_customer, error_lbl_customer);
+				
+				String searchQ = search_customer_query.getText();
+				ArrayList<Product> searchResults = sysCustomer.searchProducts(searchQ);
+				_searchResults searchInstance = new _searchResults();
+				searchInstance.initialize(searchResults);
+				passMsg("Successfully produced search results", success_lbl_customer);
+			}
+		});
+		
+		// User Adds Product to Basket
+		add_prod_btn.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				// Clear any messages on screen
+				clearMessages(success_lbl_customer, error_lbl_customer);
+				
+				String prodBarcode = add_barcode_inp.getText();
+				// If input is invalid
+				if (isInt(prodBarcode) == false) {
+					passMsg("Barcode should contain only numbers.", error_lbl_customer);
+				} else {
+					// Get result from method
+					ArrayList<String> res = sysCustomer.addItemToBasket(Integer.parseInt(prodBarcode), (Integer) spinner.getValue());
+					// If Success
+					if (res.get(1) == "success") {
+						String succMsg = String.format("Product %s Successfully added to basket", prodBarcode);
+						passMsg(succMsg, success_lbl_customer);
+						
+						// Update Tree
+						DefaultTreeModel model = (DefaultTreeModel)shopping_tree.getModel();
+						model.setRoot(updateShoppingTree());
+						model.reload();
+						
+					// If error then pass error message
+					} else {
+						passMsg(res.get(0), error_lbl_customer);
+					}
+				}
+				
+					
+				
+				
+				
+			}
+		});
+		
+		// User takes product out of basket
+		del_prod_btn.addActionListener(new ActionListener() { 
+			public void actionPerformed(ActionEvent log_del) {
+				// Clear any messages on screen
+				clearMessages(success_lbl_customer, error_lbl_customer);
+				
+				String prodBarcode = del_barcode_inp.getText();
+				
+				// If input is invalid
+				if (isInt(prodBarcode) == false) {
+					passMsg("Barcode should contain only numbers.", error_lbl_customer);
+				} else {
+					// Get result from method
+					ArrayList<String> res = sysCustomer.removeItemFromBasket(Integer.parseInt(prodBarcode));
+					if (res.get(1) == "error" ) {
+						passMsg(res.get(0), error_lbl_customer);
+					} else {
+						passMsg(res.get(0), success_lbl_customer);
+						
+						// Success -> Update Tree
+						DefaultTreeModel model = (DefaultTreeModel)shopping_tree.getModel();
+						model.setRoot(updateShoppingTree());
+						model.reload();
+					}
+				}
+			}
+		});
+		
+		// Clear Basket
+		clear_basket.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e_clear) {
+				// Clear any messages on screen
+				clearMessages(success_lbl_customer, error_lbl_customer);
+				
+				sysCustomer.clearBasket();
+				passMsg("CLEARED BASKET", success_lbl_customer);
+				
+				// Update Tree
+				DefaultTreeModel model = (DefaultTreeModel)shopping_tree.getModel();
+				model.setRoot(updateShoppingTree());
+				model.reload();
+			}
+		});
+				
+		
 	}
+	
+	
+	// Function to update tree
+	public DefaultMutableTreeNode updateShoppingTree() {
+				
+		
+		// Random Number
+		Random rand = new Random();
+		int rdm = rand.nextInt(100);
+		
+		// New Root
+		DefaultMutableTreeNode root = new DefaultMutableTreeNode("Basket (double click barcode to expand)");		
+		
+		// Get Basket
+		HashMap<Integer, Integer> shoppingBasket = sysCustomer.getBasket();
+		
+		for (Map.Entry<Integer, Integer> set : shoppingBasket.entrySet()) {
+			DefaultMutableTreeNode prodCode = new DefaultMutableTreeNode(set.getKey());
+			
+			// Get Product Details Brief for Basket Display
+			ArrayList<String> prodDetails = sysCustomer.retrieveProductDetails(set.getKey());
+			String quantityStr = String.format("Quantity: %s", set.getValue());
+						
+			if (prodDetails.get(3).equals("Keyboard")) {
+				String itemStr = prodDetails.get(0) + " " + "Keyboard " + prodDetails.get(1).toUpperCase() + " " + prodDetails.get(2).substring(0,1).toUpperCase() + prodDetails.get(2).substring(1);
+				prodCode.add(new DefaultMutableTreeNode( itemStr ));
+				prodCode.add(new DefaultMutableTreeNode( "Layout: " + prodDetails.get(4).toUpperCase() ));
+			} else {
+				String itemStr = prodDetails.get(0) + " " + "Mouse " + prodDetails.get(1).toUpperCase() + " " + prodDetails.get(2).substring(0,1).toUpperCase() + prodDetails.get(2).substring(1);
+				prodCode.add(new DefaultMutableTreeNode( itemStr ));
+				prodCode.add(new DefaultMutableTreeNode( "No. Buttons: " + prodDetails.get(4)));
+			}
+			
+			
+			prodCode.add(new DefaultMutableTreeNode( quantityStr ));
+			
+			// Add product to root
+			root.add(prodCode);
+		}
+		
+		
+		return root;
+	}
+	
+	// Pass error/success message
+	public void passMsg(String msg, JLabel label) {
+		label.setText(msg);
+	};
+	
+	public void clearMessages(JLabel success, JLabel error) {
+		success.setText("");
+		error.setText("");
+	}
+	
+	
 }

@@ -16,6 +16,7 @@ import java.awt.Color;
 import javax.swing.JTextField;
 import javax.swing.JButton;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowEvent;
 import java.awt.event.ActionEvent;
 import javax.swing.JTree;
 
@@ -29,7 +30,7 @@ import javax.swing.JSpinner;
 import javax.swing.SpinnerNumberModel; // import the ArrayList class
 
 
-public class _customerDash {
+public class _customerDash{
 
 	private JFrame frame;
 	private JTextField search_customer_query;
@@ -37,6 +38,9 @@ public class _customerDash {
 	private JTextField del_barcode_inp;
 	public ProcessFile comp = new ProcessFile();
 	public Customer sysCustomer = null;
+	public JTree shopping_tree;
+	public JLabel success_lbl_customer;
+	public JLabel totalCostLbl;
 	
 	public String[] protocol = {"CUSTOMER"};
 	
@@ -60,6 +64,14 @@ public class _customerDash {
 	public boolean isInt(String value) {
 		return value.matches("-?\\d+");
 	}
+	
+	public static void pause(int ms) {
+	    try {
+	        Thread.sleep(ms);
+	    } catch (InterruptedException e) {
+	        System.err.format("IOException: %s%n", e);
+	    }
+	}
 
 	/**
 	 * Create the application.
@@ -67,6 +79,7 @@ public class _customerDash {
 	 */
 	public _customerDash(String userID) {
 		this.sysCustomer = comp.getCustomerObj("101");
+		t.start();
 		initialize();
 	}
 
@@ -105,18 +118,10 @@ public class _customerDash {
 		search_customer_sbt_btn.setBounds(610, 67, 61, 33);
 		desktopPane.add(search_customer_sbt_btn);
 		
-		DefaultMutableTreeNode root = new DefaultMutableTreeNode("Shopping Basket");
 		
-//		for (int i = 0;i < 5; i++) {
-//			DefaultMutableTreeNode tempNode = new DefaultMutableTreeNode("Vegetables");
-//			DefaultMutableTreeNode tempNode2 = new DefaultMutableTreeNode("Carrot");
-//			tempNode.add(tempNode2);
-//			root.add(tempNode);
-//		}
+		DefaultTreeModel shopping_basket = new DefaultTreeModel(updateShoppingTree());
+		shopping_tree = new JTree(shopping_basket);
 		
-		DefaultTreeModel shopping_basket = new DefaultTreeModel(root);
-		JTree shopping_tree = new JTree(shopping_basket);
-		shopping_tree.setLargeModel(true);
 		shopping_tree.setShowsRootHandles(true);
 		shopping_tree.setEditable(true);
 		shopping_tree.setBackground(Color.GRAY);
@@ -142,10 +147,6 @@ public class _customerDash {
 		desktopPane.add(pay_btn_card);
 		
 		JButton pay_btn_paypal = new JButton("Pay by PayPal");
-		pay_btn_paypal.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-			}
-		});
 		pay_btn_paypal.setForeground(Color.WHITE);
 		pay_btn_paypal.setBackground(new Color(67, 127, 151));
 		pay_btn_paypal.setBounds(608, 495, 166, 33);
@@ -216,17 +217,24 @@ public class _customerDash {
 		error_lbl_customer.setBounds(45, 460, 393, 44);
 		desktopPane.add(error_lbl_customer);
 		
-		JLabel success_lbl_customer = new JLabel("");
+		success_lbl_customer = new JLabel("");
 		success_lbl_customer.setForeground(Color.GREEN);
 		success_lbl_customer.setFont(new Font("Trebuchet MS", Font.BOLD | Font.ITALIC, 13));
 		success_lbl_customer.setBounds(45, 407, 393, 44);
 		desktopPane.add(success_lbl_customer);
 		
+		// Total Cost
+		
+		totalCostLbl = new JLabel("Total Cost: \u00A3 0.00");
+		totalCostLbl.setForeground(Color.WHITE);
+		totalCostLbl.setFont(new Font("Trebuchet MS", Font.BOLD, 14));
+		totalCostLbl.setBounds(797, 539, 192, 44);
+		desktopPane.add(totalCostLbl);
+		
 		
 		// User Logs Out
 		logout_btn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent log_e) {
-				System.out.println("User Signed Out");
 				System.exit(0);
 			}
 		});
@@ -268,6 +276,9 @@ public class _customerDash {
 						model.setRoot(updateShoppingTree());
 						model.reload();
 						
+						// Update Total Cost
+						updateTotalCostLbl(totalCostLbl);
+						
 					// If error then pass error message
 					} else {
 						passMsg(res.get(0), error_lbl_customer);
@@ -304,6 +315,11 @@ public class _customerDash {
 						DefaultTreeModel model = (DefaultTreeModel)shopping_tree.getModel();
 						model.setRoot(updateShoppingTree());
 						model.reload();
+						
+						// Update Total Cost
+						updateTotalCostLbl(totalCostLbl);
+						
+						
 					}
 				}
 			}
@@ -322,21 +338,38 @@ public class _customerDash {
 				DefaultTreeModel model = (DefaultTreeModel)shopping_tree.getModel();
 				model.setRoot(updateShoppingTree());
 				model.reload();
+			
 			}
 		});
+		
+		
+		// Card Payment Method
+		pay_btn_card.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				_getCard cardPayment = new _getCard(sysCustomer);
+				cardPayment.run();
 				
+				
+				
+			}
+		});
+		
+		// PayPal Payment Method
+		pay_btn_paypal.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				_getPaypal paypalPayment = new _getPaypal(sysCustomer);
+				paypalPayment.run();
+			}
+		});		
 		
 	}
 	
 	
+	
+	
 	// Function to update tree
 	public DefaultMutableTreeNode updateShoppingTree() {
-				
-		
-		// Random Number
-		Random rand = new Random();
-		int rdm = rand.nextInt(100);
-		
+						
 		// New Root
 		DefaultMutableTreeNode root = new DefaultMutableTreeNode("Basket (double click barcode to expand)");		
 		
@@ -363,6 +396,11 @@ public class _customerDash {
 			
 			prodCode.add(new DefaultMutableTreeNode( quantityStr ));
 			
+			// Cost of Product
+			double prodCost = Double.parseDouble(prodDetails.get(5)) * set.getValue();
+			String costStr = String.format("Price: \u00A3 %.2f", prodCost);
+			prodCode.add(new DefaultMutableTreeNode( costStr ));
+			
 			// Add product to root
 			root.add(prodCode);
 		}
@@ -371,11 +409,47 @@ public class _customerDash {
 		return root;
 	}
 	
+	// Listening Function that checks whether the payment is successful
+	Thread t = new Thread(new Runnable() {
+	    public void run() {
+	    	while (true) {
+	    		if (sysCustomer.paymentSuccess) {
+	    			
+	    			// Clear Tree
+	    			DefaultTreeModel model = (DefaultTreeModel)shopping_tree.getModel();
+					model.setRoot(updateShoppingTree());
+					model.reload();
+					
+					// Pass Success Message
+					passMsg("Checkout Successful", success_lbl_customer);
+					
+					// Reset Payment Success
+					sysCustomer.paymentSuccess = false; 
+					
+					// Update total cost
+					updateTotalCostLbl(totalCostLbl);
+	    		}
+		    	pause(800);
+	    	}
+	    }
+	});
+	
+	
+
+	
+	
+	// Update Total Cost
+	public void updateTotalCostLbl(JLabel label) {
+		String totalCostStr = String.format("Total Cost: \u00A3 %.2f", sysCustomer.getTotalBasketPrice());
+		label.setText(totalCostStr);
+	}
+	
 	// Pass error/success message
 	public void passMsg(String msg, JLabel label) {
 		label.setText(msg);
 	};
 	
+	// Clear Messages
 	public void clearMessages(JLabel success, JLabel error) {
 		success.setText("");
 		error.setText("");

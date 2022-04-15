@@ -105,9 +105,18 @@ public class _login {
 				ProcessFile comp = new ProcessFile();
 				User sysUser = comp.userLogin(userID_input.getText(), username_input.getText());
 				if ( sysUser != null ) {
-					String[] userDetails = {userID_input.getText()};
+					// Dispose Login Frame
 					frame.dispose();
-					_customerDash.main(userDetails);
+					
+					String[] userDetails = {userID_input.getText()};
+
+					if (sysUser instanceof Admin) {
+						_adminDash adminUser = new _adminDash((Admin)sysUser);
+						adminUser.run();
+					} else {
+						_customerDash.main(userDetails);
+					}
+					
 					
 					
 				} else {

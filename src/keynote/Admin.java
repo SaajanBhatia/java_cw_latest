@@ -12,25 +12,6 @@ public class Admin extends User {
 		// TODO Auto-generated constructor stub
 	}
 	
-	public boolean addNewProduct(String product, HashMap<String, String> objInfo) {
-		if (product == "mouse") {
-			// Declare Mouse Object
-			return true;
-		} 
-		if (product == "keyboard") {
-			// Declare Keyboard Object
-			return true;
-		}
-		return false;
-	}
-	
-	
-	public boolean updateQuantity(int prodBarcode, int newQuantity) {
-		// Find Product
-		
-		// Update Quantity
-		return true;
-	}
 
 
 }

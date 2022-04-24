@@ -8,6 +8,8 @@ import java.awt.BorderLayout;
 import javax.swing.JLabel;
 import java.awt.Font;
 import javax.swing.SwingConstants;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableModel;
 import javax.swing.JDesktopPane;
 import java.awt.Color;
 import javax.swing.JTextField;
@@ -41,6 +43,10 @@ public class _adminDash {
 	// Check if integer data type
 	public boolean isInt(String value) {
 		return value.matches("-?\\d+");
+	}
+	
+	public boolean isDouble(String value) {
+		return value.matches("([0-9]*)\\.([0-9]*)");
 	}
 	
 	// Administrator Class Declaration - The program assumes there is only ONE administrator
@@ -279,12 +285,20 @@ public class _adminDash {
 		JPanel tablePanel = new JPanel();
 		tablePanel.setBounds(417, 91, 793, 500);
 		tablePanel.setLayout(new BorderLayout());
-		admin_all_products_table = new JTable(formatDataAdmin(comp.getAllStockData()), columnNames);
+		
+		admin_all_products_table = new JTable();
+		
+		DefaultTableModel adminModel = (DefaultTableModel) admin_all_products_table.getModel();
+		adminModel.setDataVector(formatDataAdmin(comp.getAllStockData()), columnNames);
+		
 		admin_all_products_table.setFont(new Font("Trebuchet MS", Font.PLAIN, 15));
 		admin_all_products_table.setForeground(Color.WHITE);
 		admin_all_products_table.setBackground(Color.DARK_GRAY);
 		admin_all_products_table.setFillsViewportHeight(true);
 		admin_all_products_table.setShowVerticalLines(false);
+		
+		
+		
 		
 		JScrollPane pane = new JScrollPane(admin_all_products_table);
 		tablePanel.add(pane, BorderLayout.CENTER);
@@ -293,7 +307,8 @@ public class _adminDash {
 		JButton logout_btn = new JButton("Logout");
 		logout_btn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				System.exit(0);
+				frame.dispose();
+				_startApp.main(new String[0]);
 			}
 		});
 		logout_btn.setForeground(Color.WHITE);
@@ -345,12 +360,16 @@ public class _adminDash {
 				} 
 				
 				else if(quantity_admin_inp.getText().isEmpty() || isInt(quantity_admin_inp.getText()) == false ) {
-					setMessage("error","Fill in Quantity", message_lbl);
+					setMessage("error","Fill in Quantity, must be numbers only.", message_lbl);
 				}
 				
 				else if(origCost_admin_inp.getText().isEmpty()){
 					setMessage("error","Fill in Original Cost", message_lbl);
 				} 
+				
+				else if( !( isDouble(origCost_admin_inp.getText()) || isInt(origCost_admin_inp.getText()) ) || !( isDouble(retPrice_admin_inp.getText()) || isInt(retPrice_admin_inp.getText()) ) ) {
+					setMessage("error","Original and Retail Cost must be numbers only.", message_lbl);
+				}
 				
 				else if(retPrice_admin_inp.getText().isEmpty()) {
 					setMessage("error","Fill in Retail Price", message_lbl);
@@ -402,9 +421,8 @@ public class _adminDash {
 					}
 					
 					// Update Table
-					admin_all_products_table = new JTable(formatDataAdmin(comp.getAllStockData()), columnNames);
-					admin_all_products_table.updateUI();
-					admin_all_products_table.repaint();
+					adminModel.setDataVector(formatDataAdmin(comp.getAllStockData()), columnNames);
+					
 				}
 				
 				

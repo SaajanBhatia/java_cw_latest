@@ -28,17 +28,17 @@ public class User {
 		return this.address;
 	}
 	
+	public String getStrAddress() {
+		String addr = new String(this.address.get("houseNo") + " " + this.address.get("postCode") + ", " + this.address.get("city"));
+		return addr;
+	}
+	
 	// Get Method
 	public String getName() {
 		return this.name;
 	}
 	
 	
-	public ArrayList<Product> viewAllProducts(){
-		ProcessFile file = new ProcessFile();
-		ArrayList<Product> allProducts = file.getAllStockData();
-		return allProducts;
-	}
 	
 	
 

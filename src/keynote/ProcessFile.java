@@ -17,6 +17,57 @@ import java.util.ArrayList; // import the ArrayList class
 
 public class ProcessFile {
 	
+	public void formatStockFile() {
+	    // First Read file
+	    ArrayList<String> fileContents = new ArrayList<String>();
+
+	    try {
+	      File fileObj = new File("./Stock.txt");
+	      Scanner myReader = new Scanner(fileObj);
+	      while (myReader.hasNextLine()) {
+	        String line = myReader.nextLine();
+	        if (line != "") {
+	          fileContents.add(line);
+	        } 
+	      }
+	      myReader.close();
+	    } catch (FileNotFoundException e) {
+	      e.printStackTrace();
+	    }
+	    
+	   
+
+	    // Rewrite to file
+	    try {
+		      FileWriter myWriter = new FileWriter("./Stock.txt");
+		      BufferedWriter bw = new BufferedWriter(myWriter);
+		      for (int k = 0; k < fileContents.size(); k ++) {
+		        bw.write(fileContents.get(k));
+		        bw.newLine();
+		      }
+		      bw.close();
+		    } catch (IOException e) {
+		      System.out.println("An error occurred.");
+		      e.printStackTrace();
+		    }
+
+	    
+	  }
+	
+	
+	public ArrayList<Product> bubbleSort(ArrayList<Product> arr)
+    {
+        int n = arr.size();
+        for (int i = 0; i < n - 1; i++)
+            for (int j = 0; j < n - i - 1; j++)
+                if (arr.get(j).retPrice > arr.get(j+1).retPrice) {
+                    Product temp = arr.get(j);
+                    arr.set(j, arr.get(j+1));
+                    arr.set(j+1, temp);
+                }
+        return arr;
+    }
+	
 	public ArrayList<Product> getAllStockData() {
 		// Declare Array containing All Products
 		ArrayList<Product> allProducts = new ArrayList<Product>();
@@ -60,7 +111,7 @@ public class ProcessFile {
 			e.printStackTrace();
 		}
 		
-		return allProducts;
+		return bubbleSort(allProducts);
 	}
 	
 	public Product getProdObj(int barcode) {
@@ -192,8 +243,8 @@ public class ProcessFile {
 	      };
 	      
 	      String newLine = String.join(", ", newProduct);
-	      lineWriter.newLine();
 	      lineWriter.write(newLine);
+	      lineWriter.newLine();
 	      lineWriter.close();
 	      
 	      System.out.println("Successfully wrote to the file.");
@@ -236,8 +287,8 @@ public class ProcessFile {
 			};
 			
 			String newLine = String.join(", ", newProduct);
-			lineWriter.newLine();
 			lineWriter.write(newLine);
+			lineWriter.newLine();
 			lineWriter.close();
 			
 			System.out.println("Successfully added mouse");
@@ -249,11 +300,6 @@ public class ProcessFile {
 	    }
 		
 		return true;
-	}
-	
-	// Remove Product Function
-	public boolean removeProduct(int prodBarcode) {
-		return false;
 	}
 	
 	
@@ -289,6 +335,78 @@ public class ProcessFile {
 			e.printStackTrace();
 		} 
 		return result;
+	}
+	
+	public String[] getAllUsernames(){
+		ArrayList<String> usernames = new ArrayList<String>();
+		
+		try {
+			File userObj = new File("UserAccounts.txt");
+			Scanner fileReader = new Scanner(userObj);
+			
+			while ( fileReader.hasNextLine() ) {
+				String data = fileReader.nextLine();
+				String[] items = data.split(",");
+				
+				// Get rid of blank space in string items
+				for ( int i=0 ; i < items.length ; i++ ) {
+					items[i] = items[i].replace(" ","");
+					items[i] = new String(items[i]);
+				};
+				
+				// Add user to array
+				usernames.add(items[1]);
+				
+				
+			}
+			fileReader.close();
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} 
+		
+		// Convert to String Array
+		String[] usernamesStrArr = new String[usernames.size()];
+		usernamesStrArr = usernames.toArray(usernamesStrArr);
+		
+		
+		return usernamesStrArr;
+	}
+	
+	public String[] getAllUserIDs(){
+		ArrayList<String> userIds = new ArrayList<String>();
+		
+		try {
+			File userObj = new File("UserAccounts.txt");
+			Scanner fileReader = new Scanner(userObj);
+			
+			while ( fileReader.hasNextLine() ) {
+				String data = fileReader.nextLine();
+				String[] items = data.split(",");
+				
+				// Get rid of blank space in string items
+				for ( int i=0 ; i < items.length ; i++ ) {
+					items[i] = items[i].replace(" ","");
+					items[i] = new String(items[i]);
+				};
+				
+				// Add user to array
+				userIds.add(items[0]);
+				
+				
+			}
+			fileReader.close();
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} 
+		
+		// Convert to String Array
+		String[] userIdsArr = new String[userIds.size()];
+		userIdsArr = userIds.toArray(userIdsArr);
+		
+		
+		return userIdsArr;
 	}
 	
 	public Customer getCustomerObj(String userID) {

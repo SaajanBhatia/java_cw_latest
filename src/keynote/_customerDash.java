@@ -78,7 +78,7 @@ public class _customerDash{
 	 * @param userID 
 	 */
 	public _customerDash(String userID) {
-		this.sysCustomer = comp.getCustomerObj("101");
+		this.sysCustomer = comp.getCustomerObj(userID);
 		t.start();
 		initialize();
 	}
@@ -88,7 +88,7 @@ public class _customerDash{
 	 */
 	private void initialize() {
 		frame = new JFrame();
-		frame.setBounds(100, 100, 1197, 709);
+		frame.setBounds(100, 100, 1261, 768);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.getContentPane().setLayout(new BorderLayout(0, 0));
 		
@@ -134,7 +134,7 @@ public class _customerDash{
 		basket_lbl.setBounds(797, 37, 363, 36);
 		desktopPane.add(basket_lbl);
 		
-		JButton logout_btn = new JButton("Exit");
+		JButton logout_btn = new JButton("Logout");
 		logout_btn.setForeground(Color.WHITE);
 		logout_btn.setBackground(new Color(67, 127, 151));
 		logout_btn.setBounds(24, 581, 166, 33);
@@ -214,13 +214,13 @@ public class _customerDash{
 		JLabel error_lbl_customer = new JLabel("");
 		error_lbl_customer.setFont(new Font("Trebuchet MS", Font.BOLD | Font.ITALIC, 13));
 		error_lbl_customer.setForeground(new Color(255, 0, 0));
-		error_lbl_customer.setBounds(45, 460, 393, 44);
+		error_lbl_customer.setBounds(45, 460, 541, 44);
 		desktopPane.add(error_lbl_customer);
 		
 		success_lbl_customer = new JLabel("");
 		success_lbl_customer.setForeground(Color.GREEN);
 		success_lbl_customer.setFont(new Font("Trebuchet MS", Font.BOLD | Font.ITALIC, 13));
-		success_lbl_customer.setBounds(45, 407, 393, 44);
+		success_lbl_customer.setBounds(45, 407, 541, 44);
 		desktopPane.add(success_lbl_customer);
 		
 		// Total Cost
@@ -231,11 +231,18 @@ public class _customerDash{
 		totalCostLbl.setBounds(797, 539, 192, 44);
 		desktopPane.add(totalCostLbl);
 		
+		JLabel lblNewLabel_2 = new JLabel("Type \"all\" to view all products");
+		lblNewLabel_2.setForeground(Color.WHITE);
+		lblNewLabel_2.setFont(new Font("Trebuchet MS", Font.ITALIC, 12));
+		lblNewLabel_2.setBounds(365, 108, 182, 14);
+		desktopPane.add(lblNewLabel_2);
+		
 		
 		// User Logs Out
 		logout_btn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent log_e) {
-				System.exit(0);
+				frame.dispose();
+				_startApp.main(protocol);
 			}
 		});
 		
@@ -246,10 +253,20 @@ public class _customerDash{
 				clearMessages(success_lbl_customer, error_lbl_customer);
 				
 				String searchQ = search_customer_query.getText();
-				ArrayList<Product> searchResults = sysCustomer.searchProducts(searchQ);
-				_searchResults searchInstance = new _searchResults();
-				searchInstance.initialize(searchResults);
-				passMsg("Successfully produced search results", success_lbl_customer);
+				
+				// If "all" then show all other products else show search query
+				if (searchQ.toUpperCase().equals("ALL")) {
+					ArrayList<Product> searchResults = comp.getAllStockData(); 
+					_searchResults searchInstance = new _searchResults();
+					searchInstance.initialize(searchResults);
+					passMsg("Successfully produced search results", success_lbl_customer);
+				} else {
+					ArrayList<Product> searchResults = sysCustomer.searchProducts(searchQ);
+					_searchResults searchInstance = new _searchResults();
+					searchInstance.initialize(searchResults);
+					passMsg("Successfully produced search results", success_lbl_customer);
+				}
+				
 			}
 		});
 		
@@ -346,8 +363,13 @@ public class _customerDash{
 		// Card Payment Method
 		pay_btn_card.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				_getCard cardPayment = new _getCard(sysCustomer);
-				cardPayment.run();
+				clearMessages(success_lbl_customer, error_lbl_customer);
+				if (sysCustomer.shoppingBasket.isEmpty()) {
+					passMsg("Basket is empty", error_lbl_customer);
+				} else {
+					_getCard cardPayment = new _getCard(sysCustomer);
+					cardPayment.run();
+				}
 				
 				
 				
@@ -357,8 +379,14 @@ public class _customerDash{
 		// PayPal Payment Method
 		pay_btn_paypal.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				_getPaypal paypalPayment = new _getPaypal(sysCustomer);
-				paypalPayment.run();
+				clearMessages(success_lbl_customer, error_lbl_customer);
+				if (sysCustomer.shoppingBasket.isEmpty()) {
+					passMsg("Basket is empty", error_lbl_customer);
+				} else {
+					_getPaypal paypalPayment = new _getPaypal(sysCustomer);
+					paypalPayment.run();
+				}
+				
 			}
 		});		
 		
@@ -415,13 +443,21 @@ public class _customerDash{
 	    	while (true) {
 	    		if (sysCustomer.paymentSuccess) {
 	    			
+	    			// Get basket total
+	    			double total = sysCustomer.getTotalBasketPrice();
+	    			String totalPayStr = String.format("\u00A3 %.2f", total);
+	    			
+	    			// Clear Basket
+	    			sysCustomer.shoppingBasket.clear();
+	    			
 	    			// Clear Tree
 	    			DefaultTreeModel model = (DefaultTreeModel)shopping_tree.getModel();
 					model.setRoot(updateShoppingTree());
 					model.reload();
 					
 					// Pass Success Message
-					passMsg("Checkout Successful", success_lbl_customer);
+					String successPaymentStr = new String(totalPayStr + " paid using " + sysCustomer.lastPaymentMethod + ", Delivery Address: " + sysCustomer.getStrAddress());
+					passMsg(successPaymentStr, success_lbl_customer);
 					
 					// Reset Payment Success
 					sysCustomer.paymentSuccess = false; 
@@ -454,6 +490,4 @@ public class _customerDash{
 		success.setText("");
 		error.setText("");
 	}
-	
-	
 }

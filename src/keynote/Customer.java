@@ -16,6 +16,7 @@ public class Customer extends User {
 	
 	// Payment Success
 	public boolean paymentSuccess = false;
+	public String lastPaymentMethod;
 
 	public Customer(int userID, String username, String name, String[] address) {
 		super(userID, username, name, address);
@@ -90,15 +91,13 @@ public class Customer extends User {
 	public void payment(String paymentMethod) {
 		if (paymentMethod == "PAYPAL") {
 			// Get PayPal UserName 
-			this.shoppingBasket.clear();
-			
+			System.out.println("User Paid with Paypal");
 		} else if (paymentMethod == "CARD") {
 			// Get CardNo and CVC
-			this.shoppingBasket.clear();
-			
-		} else {
-			
+			System.out.println("User Paid with Card");
 		}
+		
+		this.lastPaymentMethod = paymentMethod;
 		
 	}
 	

@@ -234,7 +234,7 @@ public class _customerDash{
 		JLabel lblNewLabel_2 = new JLabel("Type \"all\" to view all products");
 		lblNewLabel_2.setForeground(Color.WHITE);
 		lblNewLabel_2.setFont(new Font("Trebuchet MS", Font.ITALIC, 12));
-		lblNewLabel_2.setBounds(365, 108, 182, 14);
+		lblNewLabel_2.setBounds(365, 108, 386, 14);
 		desktopPane.add(lblNewLabel_2);
 		
 		
